@@ -18,7 +18,7 @@ namespace Downstream
                 .Configure(app => app.Run(async (context) =>
                 {
                     // Simulate a service which is occasionally slow
-                    if (Interlocked.Increment(ref _requests) % 2000 == 0)
+                    if (Interlocked.Increment(ref _requests) % 100 == 0)
                     {
                         await Task.Delay(TimeSpan.FromSeconds(3));
                     }
