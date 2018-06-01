@@ -2,7 +2,9 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using System;
+using System.Linq;
 using System.Net.Http;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -15,7 +17,7 @@ namespace Upstream
 
         public static void Main(string[] args)
         {
-            var downstream = Environment.GetEnvironmentVariable("Downstream");
+            var downstream = Environment.GetEnvironmentVariable("DOWNSTREAM");
             downstream = string.IsNullOrEmpty(downstream) ? "http://localhost:5000" : downstream;
 
             Console.WriteLine($"Downstream: {downstream}" + Environment.NewLine);
@@ -27,10 +29,18 @@ namespace Upstream
                 .UseKestrel()
                 .Configure(app => app.Run(async (context) =>
                 {
-                    int.TryParse(context.Request.Path.Value.Substring(1, 2), out var count);
-                    count = (count == 0) ? 1 : count;
+                    var path = context.Request.Path.Value;
 
-                    var pool = context.Request.Path.Value.Contains("pool");
+                    var count = 10;
+                    if (path.Contains("count="))
+                    {
+                        if (int.TryParse(Regex.Match(path, @"count=(\d+)").Groups[1].Value, out var pathCount))
+                        {
+                            count = pathCount;
+                        }
+                    }
+
+                    var pool = path.Contains("pool");
 
                     var tasks = new Task<string>[count];
                     for (var i = 0; i < count; i++)
