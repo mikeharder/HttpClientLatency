@@ -1,15 +1,12 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Text;
 
 namespace Downstream
 {
     public class Program
     {
-        private static int _requests;
+        private static byte[] _response = Encoding.UTF8.GetBytes(new string('a', 1024));
 
         public static void Main(string[] args)
         {
@@ -17,13 +14,7 @@ namespace Downstream
                 .UseKestrel()
                 .Configure(app => app.Run(async (context) =>
                 {
-                    // Simulate a service which is occasionally slow
-                    if (Interlocked.Increment(ref _requests) % 100 == 0)
-                    {
-                        await Task.Delay(TimeSpan.FromSeconds(3));
-                    }
-
-                    await context.Response.WriteAsync("Hello World!");
+                    await context.Response.Body.WriteAsync(_response, 0, _response.Length);
                 }))
                 .UseUrls("http://*:5000")
                 .Build()
