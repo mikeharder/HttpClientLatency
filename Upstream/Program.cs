@@ -45,14 +45,21 @@ namespace Upstream
                     var tasks = new Task<string>[count];
                     for (var i = 0; i < count; i++)
                     {
-                        var httpClient = pool ? _httpClientPool.GetInstance() : _httpClient;
-                        try
+                        if (pool)
                         {
-                            tasks[i] = httpClient.GetStringAsync("/");
+                            var httpClient = _httpClientPool.GetInstance();
+                            try
+                            {
+                                tasks[i] = httpClient.GetStringAsync("/");
+                            }
+                            finally
+                            {
+                                if (pool) _httpClientPool.ReturnInstance(httpClient);
+                            }
                         }
-                        finally
+                        else
                         {
-                            if (pool) _httpClientPool.ReturnInstance(httpClient);
+                            tasks[i] = _httpClient.GetStringAsync("/");
                         }
                     }
                     await Task.WhenAll(tasks);
