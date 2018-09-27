@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-docker run -it --rm "$@" downstream
+docker run -it --rm --network host "$@" downstream
